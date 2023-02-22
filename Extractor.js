@@ -11,7 +11,7 @@ const upload = multer({ dest: 'uploads/' });
 
 // Serve the HTML form
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(__dirname + '/Index.html');
 });
 
 // Handle the file upload and GLN extraction
@@ -76,7 +76,7 @@ app.post('/extract-glns', upload.single('file'), (req, res) => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 80;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
