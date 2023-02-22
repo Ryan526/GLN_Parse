@@ -1,75 +1,58 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>GLN Extractor</title>
-  <style>
-    :root {
-      --background-color: #f0f0f0;
-      --text-color: #000000;
-      --button-background-color: #0074d9;
-      --button-text-color: #ffffff;
-    }
-
-    .dark-mode {
-      --background-color: #222222;
-      --text-color: #ffffff;
-      --button-background-color: #ffffff;
-      --button-text-color: #000000;
-    }
-
-    body {
-      background-color: var(--background-color);
-      color: var(--text-color);
-    }
-
-    button {
-      background-color: var(--button-background-color);
-      color: var(--button-text-color);
-    }
-  </style>
-</head>
-<body>
-  <h1>GLN Extractor</h1>
-  <form>
-    <label for="file-input">Select a Word document to extract GLNs from:</label>
-    <input type="file" id="file-input" name="file-input">
-    <br>
-    <input type="radio" id="output-as-list" name="output" value="list" checked>
-    <label for="output-as-list">Output as list</label>
-    <br>
-    <input type="radio" id="output-as-sql" name="output" value="sql">
-    <label for="output-as-sql">Output as SQL</label>
-    <br>
-    <button type="button" onclick="extractGLNs()">Extract GLNs</button>
-    <button type="button" onclick="toggleDarkMode()">Toggle dark mode</button>
-  </form>
-  <br>
-  <div id="output"></div>
-
-  <script>
-    function extractGLNs() {
-      const fileInput = document.getElementById("file-input");
-      const file = fileInput.files[0];
-      const outputOption = document.querySelector('input[name="output"]:checked').value;
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("outputOption", outputOption);
-
-      fetch("/extract-glns", {
-        method: "POST",
-        body: formData
-      })
-        .then(response => response.text())
-        .then(data => {
-          document.getElementById("output").textContent = data;
-        });
-    }
-
-    function toggleDarkMode() {
-      const body = document.querySelector("body");
-      body.classList.toggle("dark-mode");
-    }
-  </script>
-</body>
+  <head>
+    <title>GLN Extractor</title>
+  </head>
+  <body>
+    <h1>GLN Extractor</h1>
+    <form id="upload-form" enctype="multipart/form-data">
+      <input type="file" name="file" required />
+      <br />
+      <br />
+      <input type="radio" id="sql-output" name="outputOption" value="sql" checked />
+      <label for="sql-output">SQL Script</label>
+      <br />
+      <input type="radio" id="list-output" name="outputOption" value="list" />
+      <label for="list-output">List</label>
+      <br />
+      <br />
+      <input type="button" value="Extract GLNs" onclick="extractGLNs()" />
+    </form>
+    <br />
+    <div id="result"></div>
+    <script>
+      function extractGLNs() {
+        var form = document.getElementById('upload-form');
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/extract-glns');
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            var outputOption = document.querySelector('input[name="outputOption"]:checked').value;
+            var resultDiv = document.getElementById('result');
+            if (outputOption === 'sql') {
+              resultDiv.innerHTML = '<textarea>' + xhr.responseText + '</textarea><br><button onclick="copyToClipboard()">Copy to clipboard</button>';
+            } else {
+              var lines = xhr.responseText.split('\n');
+              var html = '';
+              for (var i = 0; i < lines.length; i++) {
+                html += lines[i] + '<br>';
+              }
+              resultDiv.innerHTML = html;
+            }
+          } else {
+            alert('Error extracting GLNs');
+          }
+        };
+        var formData = new FormData(form);
+        xhr.send(formData);
+      }
+      
+      function copyToClipboard() {
+        var copyText = document.querySelector('textarea');
+        copyText.select();
+        document.execCommand('copy');
+        alert('Copied to clipboard');
+      }
+    </script>
+  </body>
 </html>
