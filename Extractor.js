@@ -3,6 +3,8 @@ const app = express();
 const fs = require('fs');
 const mammoth = require('mammoth');
 const multer = require('multer');
+const textract = require('textract');
+const xlsx = require('xlsx');
 
 // Set up multer to handle file uploads
 const upload = multer({ dest: 'uploads/' });
@@ -16,11 +18,44 @@ app.get('/', (req, res) => {
 app.post('/extract-glns', upload.single('file'), (req, res) => {
   const outputOption = req.body.outputOption;
   const filePath = req.file.path;
+  const fileType = req.file.originalname.split('.').pop();
 
-  mammoth.extractRawText({ path: filePath })
+  let extractor;
+
+  switch (fileType) {
+    case 'docx':
+      extractor = mammoth.extractRawText;
+      break;
+    case 'txt':
+      extractor = (options) => {
+        return new Promise((resolve, reject) => {
+          textract.fromFileWithPath(options.path, (error, text) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve({ value: text });
+            }
+          });
+        });
+      };
+      break;
+    case 'xlsx':
+      extractor = (options) => {
+        const workbook = xlsx.readFile(options.path);
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const text = xlsx.utils.sheet_to_csv(worksheet, { header: 1 });
+        return Promise.resolve({ value: text });
+      };
+      break;
+    default:
+      res.status(400).send('Unsupported file type');
+      return;
+  }
+
+  extractor({ path: filePath })
     .then(result => {
       const text = result.value;
-      const regex = /(?<!GLN: )\b\d{6}-\d{6}\b/g;
+      const regex = /\b\d{6}-\d{6}\b/g;
       let matches = text.match(regex);
 
       if (outputOption === 'sql') {
