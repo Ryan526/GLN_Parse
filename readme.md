@@ -17,7 +17,7 @@ You'll need to have [Node.js](https://nodejs.org/) installed on your machine to 
 
 To install the application, first clone this repository:
 
-git clone https://github.com/yourusername/yourrepository.git
+git clone https://github.com/Ryan526/GLN_Parse.git
 
 Next, navigate to the project's root directory and install the necessary dependencies:
 
