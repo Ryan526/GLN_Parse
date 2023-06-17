@@ -50,6 +50,8 @@ This project depends on the following npm packages:
 
 - `Index.html`: This is the client-side HTML file. It includes a form for file upload and output option selection, a div for displaying the results, and scripts for handling form submissions and displaying the results.
 
+
+##Contributors
 <a href="https://github.com/Ryan526/GLN_Parse/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=Ryan526/GLN_Parse" />
 </a>
